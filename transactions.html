@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CoinFlow - Transactions</title>
+    <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="logo">
+          <div class="logo-icon">
+            <i class="fas fa-coins"></i>
+          </div>
+          <div class="logo-text">
+            <h1>CoinFlow</h1>
+            <p>Transactions</p>
+          </div>
+        </div>
+        <div class="header-nav" style="display: flex; gap: 8px">
+          <a href="index.html" class="nav-link active">
+            <i class="fas fa-home"></i>
+            <span>Dashboard</span>
+          </a>
+        </div>
+      </header>
+
+      <div class="dashboard" style="grid-template-columns: 1fr">
+        <div class="main-content">
+          <div class="transactions">
+            <div class="section-title">
+              <i class="fas fa-list"></i>
+              <h2>Manage Transactions</h2>
+            </div>
+
+            <div style="margin-bottom: 1rem; display: flex; gap: 10px"></div>
+
+            <!-- Filters Bar -->
+            <div
+              class="filters-bar"
+              style="
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                align-items: center;
+                margin-bottom: 1rem;
+              "
+            >
+              <input
+                id="filter-search"
+                type="text"
+                placeholder="Search title"
+                style="flex: 1; min-width: 200px"
+              />
+              <select id="filter-category">
+                <option value="all">All Categories</option>
+                <option value="food">Food & Drinks</option>
+                <option value="transport">Transportation</option>
+                <option value="shopping">Shopping</option>
+                <option value="bills">Bills & Utilities</option>
+                <option value="entertainment">Entertainment</option>
+                <option value="health">Health</option>
+              </select>
+              <input id="filter-start" type="date" />
+              <input id="filter-end" type="date" />
+              <button id="filter-reset" class="action-btn">
+                <i class="fas fa-undo"></i><span>Reset</span>
+              </button>
+              <button id="toggle-edit" class="action-btn">
+                <i class="fas fa-pen"></i><span>Edit Mode</span>
+              </button>
+            </div>
+
+            <div class="transaction-list" id="transactions-list">
+              <!-- Rendered by transactions.js -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/transactions.js"></script>
+  </body>
+</html>

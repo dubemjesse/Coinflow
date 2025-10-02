@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reminders - CoinFlow</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="logo">
+          <div class="logo-icon">
+            <i class="fas fa-coins"></i>
+          </div>
+          <div class="logo-text">
+            <h1>CoinFlow</h1>
+            <p>Track. Analyze. Save.</p>
+          </div>
+        </div>
+        <nav>
+          <a href="index.html" class="nav-link">
+            <i class="fas fa-home"></i>
+            Dashboard
+          </a>
+        </nav>
+      </header>
+      <div class="page-header">
+        <h1><i class="fas fa-bell"></i> Reminders</h1>
+        <p>Set and manage your financial reminders</p>
+      </div>
+
+      <div class="dashboard">
+        <div class="sidebar">
+          <div class="section-title">
+            <i class="fas fa-plus-circle"></i>
+            <h2>Add Reminder</h2>
+          </div>
+          <div class="add-expense-form">
+            <div class="form-group">
+              <label for="reminder-title">Reminder Title</label>
+              <input
+                type="text"
+                id="reminder-title"
+                class="form-control"
+                placeholder="e.g., Pay electricity bill"
+              />
+            </div>
+            <div class="form-group">
+              <label for="reminder-description">Description (Optional)</label>
+              <textarea
+                id="reminder-description"
+                class="form-control"
+                placeholder="Additional details about this reminder"
+                rows="3"
+              ></textarea>
+            </div>
+            <div class="form-group">
+              <label for="reminder-category">Category</label>
+              <select id="reminder-category" class="form-control">
+                <option value="">Select Category</option>
+                <option value="bills">Bills & Utilities</option>
+                <option value="income">Income</option>
+                <option value="investment">Investment</option>
+                <option value="savings">Savings Goal</option>
+                <option value="subscription">Subscription</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="reminder-date">Reminder Date</label>
+              <input type="date" id="reminder-date" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label for="reminder-time">Reminder Time</label>
+              <input
+                type="time"
+                id="reminder-time"
+                class="form-control"
+                value="09:00"
+              />
+            </div>
+            <div class="form-group">
+              <label for="reminder-repeat">Repeat</label>
+              <select id="reminder-repeat" class="form-control">
+                <option value="none">No Repeat</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+              </select>
+            </div>
+            <button type="button" class="btn btn-primary" id="add-reminder-btn">
+              <i class="fas fa-plus"></i>
+              Add Reminder
+            </button>
+          </div>
+
+          <div class="section-title">
+            <i class="fas fa-filter"></i>
+            <h2>Filter Reminders</h2>
+          </div>
+          <div class="filter-options">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="today">Today</button>
+            <button class="filter-btn" data-filter="upcoming">Upcoming</button>
+            <button class="filter-btn" data-filter="overdue">Overdue</button>
+          </div>
+        </div>
+
+        <div class="main-content">
+          <div class="reminders-container">
+            <div class="section-title">
+              <i class="fas fa-list"></i>
+              <h2>Your Reminders</h2>
+              <span class="reminder-count">0 reminders</span>
+            </div>
+
+            <div class="reminder-list" id="reminder-list">
+              <!-- Sample reminders for demonstration -->
+              <div class="reminder-item upcoming">
+                <div class="reminder-icon bills">
+                  <i class="fas fa-bolt"></i>
+                </div>
+                <div class="reminder-details">
+                  <div class="reminder-title">Pay Electricity Bill</div>
+                  <div class="reminder-description">
+                    Monthly electricity payment due
+                  </div>
+                  <div class="reminder-category">Bills & Utilities</div>
+                  <div class="reminder-datetime">Dec 20, 2023 • 9:00 AM</div>
+                </div>
+                <div class="reminder-actions">
+                  <button
+                    class="action-btn-small complete"
+                    title="Mark as Complete"
+                  >
+                    <i class="fas fa-check"></i>
+                  </button>
+                  <button class="action-btn-small edit" title="Edit Reminder">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button
+                    class="action-btn-small delete"
+                    title="Delete Reminder"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="reminder-item today">
+                <div class="reminder-icon income">
+                  <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <div class="reminder-details">
+                  <div class="reminder-title">Salary Payment Expected</div>
+                  <div class="reminder-description">
+                    Monthly salary should be credited today
+                  </div>
+                  <div class="reminder-category">Income</div>
+                  <div class="reminder-datetime">Dec 15, 2023 • 12:00 PM</div>
+                </div>
+                <div class="reminder-actions">
+                  <button
+                    class="action-btn-small complete"
+                    title="Mark as Complete"
+                  >
+                    <i class="fas fa-check"></i>
+                  </button>
+                  <button class="action-btn-small edit" title="Edit Reminder">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button
+                    class="action-btn-small delete"
+                    title="Delete Reminder"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="reminder-item overdue">
+                <div class="reminder-icon subscription">
+                  <i class="fas fa-tv"></i>
+                </div>
+                <div class="reminder-details">
+                  <div class="reminder-title">Netflix Subscription Renewal</div>
+                  <div class="reminder-description">
+                    Monthly subscription payment
+                  </div>
+                  <div class="reminder-category">Subscription</div>
+                  <div class="reminder-datetime">Dec 10, 2023 • 6:00 PM</div>
+                </div>
+                <div class="reminder-actions">
+                  <button
+                    class="action-btn-small complete"
+                    title="Mark as Complete"
+                  >
+                    <i class="fas fa-check"></i>
+                  </button>
+                  <button class="action-btn-small edit" title="Edit Reminder">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button
+                    class="action-btn-small delete"
+                    title="Delete Reminder"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="empty-state" id="empty-state" style="display: none">
+              <i class="fas fa-bell-slash"></i>
+              <h3>No Reminders Found</h3>
+              <p>
+                You don't have any reminders yet. Create your first reminder to
+                get started!
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/reminders.js"></script>
+  </body>
+</html>

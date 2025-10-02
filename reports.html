@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reports - CoinFlow</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg" />
+    <!-- ADDED: Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body class="reports-page">
+    <div class="container">
+      <!-- FIXED: Header structure -->
+      <header class="header">
+        <div class="logo">
+          <div class="logo-icon">
+            <i class="fas fa-coins"></i>
+          </div>
+          <div class="logo-text">
+            <h1>CoinFlow</h1>
+            <p>Track. Analyze. Save.</p>
+          </div>
+        </div>
+        <nav class="nav-links">
+          <a href="index.html" class="nav-link">
+            <i class="fas fa-home"></i>
+            Dashboard
+          </a>
+        </nav>
+      </header>
+
+      <!-- Page Header -->
+      <div class="page-header">
+        <h1>Financial Reports</h1>
+        <p>Analyze your spending patterns and financial trends</p>
+      </div>
+
+      <!-- Reports Content -->
+      <div class="reports-layout">
+        <!-- Filters Sidebar -->
+        <aside class="reports-sidebar">
+          <div class="filter-section">
+            <div class="section-title">
+              <i class="fas fa-filter"></i>
+              <h2>Report Filters</h2>
+            </div>
+
+            <!-- Date Range Filter -->
+            <div class="filter-group">
+              <label>Date Range</label>
+              <select id="dateRange" class="filter-select">
+                <option value="7">Last 7 days</option>
+                <option value="30" selected>Last 30 days</option>
+                <option value="90">Last 3 months</option>
+                <option value="365">Last year</option>
+                <option value="custom">Custom range</option>
+              </select>
+            </div>
+
+            <!-- Custom Date Range -->
+            <div
+              class="filter-group custom-date-range"
+              id="customDateRange"
+              style="display: none"
+            >
+              <label>From</label>
+              <input type="date" id="startDate" class="filter-input" />
+              <label>To</label>
+              <input type="date" id="endDate" class="filter-input" />
+            </div>
+
+            <!-- Category Filter -->
+            <div class="filter-group">
+              <label>Categories</label>
+              <div class="category-filters">
+                <label class="checkbox-label">
+                  <input type="checkbox" value="all" checked /> All Categories
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" value="shopping" checked /> Shopping
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" value="bills" checked /> Bills &
+                  Utilities
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" value="food" checked /> Food & Dining
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" value="transport" checked /> Transport
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" value="health" checked /> Health
+                </label>
+              </div>
+            </div>
+
+            <!-- Generate Report Button -->
+            <button class="generate-report-btn" id="generateReport">
+              <i class="fas fa-chart-line"></i>
+              Generate Report
+            </button>
+            <div
+              id="reportStatus"
+              class="report-status"
+              aria-live="polite"
+            ></div>
+          </div>
+        </aside>
+
+        <!-- Main Reports Content -->
+        <main class="reports-main">
+          <!-- Summary Cards -->
+          <div class="summary-cards">
+            <div class="summary-card">
+              <div class="summary-icon">
+                <i class="fas fa-wallet"></i>
+              </div>
+              <div class="summary-info">
+                <h3>Total Expenses</h3>
+                <p class="summary-amount">₦0</p>
+                <span class="summary-change">+0% from last period</span>
+              </div>
+            </div>
+
+            <div class="summary-card">
+              <div class="summary-icon">
+                <i class="fas fa-chart-line"></i>
+              </div>
+              <div class="summary-info">
+                <h3>Average Daily</h3>
+                <p class="summary-amount">₦0</p>
+                <span class="summary-change">-0% from last period</span>
+              </div>
+            </div>
+
+            <div class="summary-card">
+              <div class="summary-icon">
+                <i class="fas fa-receipt"></i>
+              </div>
+              <div class="summary-info">
+                <h3>Total Transactions</h3>
+                <p class="summary-amount">0</p>
+                <span class="summary-change">+0 from last period</span>
+              </div>
+            </div>
+          </div>
+          <!-- Charts Section -->
+          <div class="charts-section">
+            <!-- Spending Trend Chart -->
+            <div class="chart-container">
+              <div class="chart-header">
+                <div class="section-title">
+                  <i class="fas fa-chart-line"></i>
+                  <h2>Spending Trend</h2>
+                </div>
+                <div class="chart-controls">
+                  <button class="chart-btn active" data-period="daily">
+                    Daily
+                  </button>
+                  <button class="chart-btn" data-period="weekly">Weekly</button>
+                  <button class="chart-btn" data-period="monthly">
+                    Monthly
+                  </button>
+                </div>
+              </div>
+              <div class="chart-placeholder">
+                <canvas id="spendingTrendChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Category Breakdown -->
+            <div class="chart-container">
+              <div class="chart-header">
+                <div class="section-title">
+                  <i class="fas fa-chart-pie"></i>
+                  <h2>Category Breakdown</h2>
+                </div>
+              </div>
+              <div class="category-breakdown">
+                <div class="category-item">
+                  <div class="category-info">
+                    <div class="category-color bills"></div>
+                    <span class="category-name">Bills & Utilities</span>
+                  </div>
+                  <div class="category-stats">
+                    <span class="category-amount">₦0</span>
+                    <span class="category-percentage">0%</span>
+                  </div>
+                  <div class="category-bar">
+                    <div
+                      class="category-progress bills"
+                      style="width: 0%"
+                    ></div>
+                  </div>
+                </div>
+
+                <div class="category-item">
+                  <div class="category-info">
+                    <div class="category-color shopping"></div>
+                    <span class="category-name">Shopping</span>
+                  </div>
+                  <div class="category-stats">
+                    <span class="category-amount">₦0</span>
+                    <span class="category-percentage">0%</span>
+                  </div>
+                  <div class="category-bar">
+                    <div
+                      class="category-progress shopping"
+                      style="width: 0%"
+                    ></div>
+                  </div>
+                </div>
+
+                <div class="category-item">
+                  <div class="category-info">
+                    <div class="category-color food"></div>
+                    <span class="category-name">Food & Dining</span>
+                  </div>
+                  <div class="category-stats">
+                    <span class="category-amount">₦0</span>
+                    <span class="category-percentage">0%</span>
+                  </div>
+                  <div class="category-bar">
+                    <div class="category-progress food" style="width: 0%"></div>
+                  </div>
+                </div>
+
+                <div class="category-item">
+                  <div class="category-info">
+                    <div class="category-color transport"></div>
+                    <span class="category-name">Transport</span>
+                  </div>
+                  <div class="category-stats">
+                    <span class="category-amount">₦0</span>
+                    <span class="category-percentage">0%</span>
+                  </div>
+                  <div class="category-bar">
+                    <div
+                      class="category-progress transport"
+                      style="width: 0%"
+                    ></div>
+                  </div>
+                </div>
+
+                <div class="category-item">
+                  <div class="category-info">
+                    <div class="category-color health"></div>
+                    <span class="category-name">Health</span>
+                  </div>
+                  <div class="category-stats">
+                    <span class="category-amount">₦0</span>
+                    <span class="category-percentage">0%</span>
+                  </div>
+                  <div class="category-bar">
+                    <div
+                      class="category-progress health"
+                      style="width: 0%"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+          </div>
+        </div>
+          
+          <div class="transactions">
+            <div class="section-title">
+              <i class="fas fa-history"></i>
+              <h2>Recent Transactions</h2>
+            </div>
+
+            <div class="transaction-list">
+              <div class="transaction-item">
+                <div class="transaction-icon food">
+                  <i class="fas fa-utensils"></i>
+                </div>
+                <div class="transaction-details">
+                  <div class="transaction-title">Lunch At Mama Oyinye</div>
+                  <div class="transaction-category">Food & Drinks</div>
+                  <div class="transaction-datetime">Sep 15, 2025 • 2:30 PM</div>
+                </div>
+                <div class="transaction-amount expense">-₦8,500</div>
+              </div>
+
+              <div class="transaction-item">
+                <div class="transaction-icon bills">
+                  <i class="fas fa-mobile-alt"></i>
+                </div>
+                <div class="transaction-details">
+                  <div class="transaction-title">Airtime Recharge</div>
+                  <div class="transaction-category">Bills & Utilities</div>
+                  <div class="transaction-datetime">Sep 15, 2025 • 2:30 PM</div>
+                </div>
+                <div class="transaction-amount expense">-₦5,000</div>
+              </div>
+
+              <div class="transaction-item">
+                <div class="transaction-icon shopping">
+                  <i class="fas fa-drumstick-bite"></i>
+                </div>
+                <div class="transaction-details">
+                  <div class="transaction-title">Chicken from Supermarket</div>
+                  <div class="transaction-category">Shopping</div>
+                  <div class="transaction-datetime">Sep 15, 2025 • 11:45 AM</div>
+                </div>
+                <div class="transaction-amount expense">-₦14,000</div>
+              </div>
+
+              <div class="transaction-item">
+                <div class="transaction-icon bills">
+                  <i class="fas fa-gas-pump"></i>
+                </div>
+                <div class="transaction-details">
+                  <div class="transaction-title">Fuel for Car</div>
+                  <div class="transaction-category">Bills & Utilities</div>
+                  <div class="transaction-datetime">Sep 14, 2025 • 6:15 PM</div>
+                </div>
+                <div class="transaction-amount expense">-₦25,000</div>
+              </div>
+
+              <div class="transaction-item">
+                <div class="transaction-icon health">
+                  <i class="fas fa-pills"></i>
+                </div>
+                <div class="transaction-details">
+                  <div class="transaction-title">Drugs for Malaria</div>
+                  <div class="transaction-category">Health</div>
+                  <div class="transaction-datetime">Sep 14, 2025 • 3:20 PM</div>
+                </div>
+                <div class="transaction-amount expense">-₦2,500</div>
+              </div>
+
+              <div class="transaction-item">
+                <div class="transaction-icon transport">
+                  <i class="fas fa-bus"></i>
+                </div>
+                <div class="transaction-details">
+                  <div class="transaction-title">Bus Ride From Nsukka</div>
+                  <div class="transaction-category">Transportation</div>
+                  <div class="transaction-datetime">Sep 14, 2025 • 8:00 AM</div>
+                </div>
+                <div class="transaction-amount expense">-₦2,200</div>
+              </div>
+
+              <div class="transaction-item">
+                <div class="transaction-icon bills">
+                  <i class="fas fa-bolt"></i>
+                </div>
+                <div class="transaction-details">
+                  <div class="transaction-title">Electricity Bill</div>
+                  <div class="transaction-category">Bills & Utilities</div>
+                  <div class="transaction-datetime">Sep 13, 2025 • 4:45 PM</div>
+                </div>
+                <div class="transaction-amount expense">-₦25,000</div>
+              </div>
+
+              <div class="transaction-item">
+                <div class="transaction-icon shopping">
+                  <i class="fas fa-shopping-bag"></i>
+                </div>
+                <div class="transaction-details">
+                  <div class="transaction-title">Vee's Supermarket</div>
+                  <div class="transaction-category">Shopping</div>
+                  <div class="transaction-datetime">Sep 13, 2025 • 10:15 AM</div>
+                </div>
+                <div class="transaction-amount expense">-₦35,000</div>
+              </div>
+
+              <div class="transaction-item">
+                <div class="transaction-icon food">
+                  <i class="fas fa-mug-hot"></i>
+                </div>
+                <div class="transaction-details">
+                  <div class="transaction-title">
+                    Coffee From Enugu City Mall
+                  </div>
+                  <div class="transaction-category">Food & Drinks</div>
+                  <div class="transaction-datetime">Sep 12, 2025 • 2:45 PM</div>
+                </div>
+                <div class="transaction-amount expense">-₦3,500</div>
+              </div>
+            </div>
+          </div>
+      </main>
+    </div>
+  </div>
+
+    <script src="js/reports.js"></script>
+  </body>
+</html>
