@@ -1,7 +1,11 @@
 // Enhanced Dashboard Functionality
+import { api, toISO, toLegacyTransaction, toMinor } from "./api.js";
+import { ensureSession, logout } from "./session.js";
+
 class DashboardManager {
-  constructor() {
-    this.transactions = this.loadTransactions();
+  constructor(user, transactions) {
+    this.user = user;
+    this.transactions = transactions;
     this.budgets = this.loadBudgets();
     this.currentChartPeriod = "month";
     this.init();
@@ -33,90 +37,6 @@ class DashboardManager {
         this.handleQuickAction(action);
       });
     });
-  }
-
-  loadTransactions() {
-    // Load from localStorage or use default data
-    const saved = localStorage.getItem("coinflow-transactions");
-    if (saved) {
-      return JSON.parse(saved);
-    }
-
-    // Default transaction data from index.html
-    return [
-      {
-        id: 1,
-        title: "Lunch At Mama Oyinye",
-        amount: 8500,
-        category: "food",
-        date: "2025-09-15",
-        time: "14:30",
-      },
-      {
-        id: 2,
-        title: "Airtime Recharge",
-        amount: 5000,
-        category: "bills",
-        date: "2025-09-15",
-        time: "14:30",
-      },
-      {
-        id: 3,
-        title: "Chicken from Supermarket",
-        amount: 14000,
-        category: "shopping",
-        date: "2025-09-15",
-        time: "11:45",
-      },
-      {
-        id: 4,
-        title: "Fuel for Car",
-        amount: 25000,
-        category: "bills",
-        date: "2025-09-14",
-        time: "18:15",
-      },
-      {
-        id: 5,
-        title: "Drugs for Malaria",
-        amount: 2500,
-        category: "health",
-        date: "2025-09-14",
-        time: "15:20",
-      },
-      {
-        id: 6,
-        title: "Bus Ride From Nsukka",
-        amount: 2200,
-        category: "transport",
-        date: "2025-09-14",
-        time: "08:00",
-      },
-      {
-        id: 7,
-        title: "Electricity Bill",
-        amount: 25000,
-        category: "bills",
-        date: "2025-09-13",
-        time: "16:45",
-      },
-      {
-        id: 8,
-        title: "Vee's Supermarket",
-        amount: 35000,
-        category: "shopping",
-        date: "2025-09-13",
-        time: "10:15",
-      },
-      {
-        id: 9,
-        title: "Coffee From Enugu City Mall",
-        amount: 3500,
-        category: "food",
-        date: "2025-09-12",
-        time: "14:45",
-      },
-    ];
   }
 
   loadBudgets() {
@@ -200,43 +120,35 @@ class DashboardManager {
     addBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
     addBtn.disabled = true;
 
-    setTimeout(() => {
-      // Create new expense object
-      const newExpense = {
-        id: Date.now(),
-        title: title,
-        amount: parseFloat(amount),
-        category: category,
-        date: date,
-        time: new Date().toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      };
+    const nowTime = new Date().toTimeString().slice(0, 5);
+    api.transactions
+      .create({
+        title,
+        amountMinor: toMinor(amount),
+        category,
+        occurredAt: toISO(date, nowTime),
+      })
+      .then((created) => {
+        this.transactions.unshift(toLegacyTransaction(created));
+        this.updateDashboard();
 
-      // Add to transactions array
-      this.transactions.unshift(newExpense);
-      this.saveTransactions();
+        document.getElementById("expense-title").value = "";
+        document.getElementById("expense-amount").value = "";
+        document.getElementById("expense-category").selectedIndex = 0;
+        this.setDefaultDate();
 
-      // Update dashboard
-      this.updateDashboard();
-
-      // Reset form
-      document.getElementById("expense-title").value = "";
-      document.getElementById("expense-amount").value = "";
-      document.getElementById("expense-category").selectedIndex = 0;
-      this.setDefaultDate();
-
-      addBtn.innerHTML = '<i class="fas fa-plus"></i> Add Expense';
-      addBtn.disabled = false;
-
-      this.showAlert(
-        `Expense "${title}" of ₦${parseFloat(
-          amount
-        ).toLocaleString()} added successfully!`,
-        "success"
-      );
-    }, 1000);
+        this.showAlert(
+          `Expense "${title}" of ₦${parseFloat(amount).toLocaleString()} added successfully!`,
+          "success"
+        );
+      })
+      .catch((err) => {
+        this.showAlert(err.message || "Failed to add expense", "error");
+      })
+      .finally(() => {
+        addBtn.innerHTML = '<i class="fas fa-plus"></i> Add Expense';
+        addBtn.disabled = false;
+      });
   }
 
   handleQuickAction(action) {
@@ -287,7 +199,9 @@ class DashboardManager {
       (sum, t) => sum + Number(t.amount || 0),
       0
     );
-    const monthlyIncome = 512000; // Fixed monthly income
+    const monthlyIncome = this.user?.monthlyIncomeMinor
+      ? this.user.monthlyIncomeMinor / 100
+      : 512000;
     const savings = monthlyIncome - totalExpenses;
     const savingsRate = monthlyIncome > 0 ? (savings / monthlyIncome) * 100 : 0;
 
@@ -664,13 +578,6 @@ class DashboardManager {
     this.showAlert("Transactions exported as CSV successfully!", "success");
   }
 
-  saveTransactions() {
-    localStorage.setItem(
-      "coinflow-transactions",
-      JSON.stringify(this.transactions)
-    );
-  }
-
   showAlert(message, type = "info") {
     // Create alert element
     const alert = document.createElement("div");
@@ -737,6 +644,33 @@ class DashboardManager {
 }
 
 // Initialize the dashboard when DOM is loaded
+async function loadTransactions() {
+  const { items } = await api.transactions.list({ limit: 500 });
+  return items.map(toLegacyTransaction);
+}
+
+async function bootstrap() {
+  const user = await ensureSession();
+  const transactions = await loadTransactions();
+  const dashboard = new DashboardManager(user, transactions);
+
+  // Wire a logout control into the user profile card.
+  const profile = document.querySelector(".user-profile");
+  if (profile) {
+    profile.style.cursor = "pointer";
+    profile.title = "Click to sign out";
+    profile.addEventListener("click", () => {
+      if (confirm("Sign out of CoinFlow?")) logout();
+    });
+    const nameEl = profile.querySelector('div[style*="font-weight"]');
+    if (nameEl && user?.name) nameEl.textContent = user.name;
+  }
+  return dashboard;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-  new DashboardManager();
+  bootstrap().catch((err) => {
+    console.error(err);
+    alert(`Failed to load CoinFlow: ${err.message}`);
+  });
 });

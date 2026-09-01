@@ -1,0 +1,110 @@
+// CoinFlow database schema.
+// Money columns are stored as BigInt in integer MINOR units (kobo).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String   @id @default(uuid()) @db.Uuid
+  email              String   @unique
+  passwordHash       String   @map("password_hash")
+  name               String
+  monthlyIncomeMinor BigInt   @default(0) @map("monthly_income_minor")
+  currency           String   @default("NGN")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  transactions Transaction[]
+  reminders    Reminder[]
+  budgets      Budget[]
+
+  @@map("users")
+}
+
+enum TransactionType {
+  expense
+  income
+}
+
+enum Category {
+  food
+  transport
+  shopping
+  bills
+  entertainment
+  health
+}
+
+model Transaction {
+  id          String          @id @default(uuid()) @db.Uuid
+  userId      String          @map("user_id") @db.Uuid
+  title       String
+  amountMinor BigInt          @map("amount_minor")
+  type        TransactionType @default(expense)
+  category    Category
+  occurredAt  DateTime        @map("occurred_at")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, occurredAt])
+  @@map("transactions")
+}
+
+model Budget {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  category    Category
+  amountMinor BigInt   @map("amount_minor")
+  period      String   @default("monthly")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category, period])
+  @@map("budgets")
+}
+
+enum ReminderRepeat {
+  none
+  daily
+  weekly
+  monthly
+  yearly
+}
+
+enum ReminderCategory {
+  bills
+  income
+  investment
+  savings
+  subscription
+  other
+}
+
+model Reminder {
+  id          String           @id @default(uuid()) @db.Uuid
+  userId      String           @map("user_id") @db.Uuid
+  title       String
+  description String?
+  category    ReminderCategory @default(other)
+  dueAt       DateTime         @map("due_at")
+  repeat      ReminderRepeat   @default(none)
+  completed   Boolean          @default(false)
+  completedAt DateTime?        @map("completed_at")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, dueAt])
+  @@map("reminders")
+}

@@ -1,6 +1,9 @@
+import { api, toLegacyTransaction } from "./api.js";
+import { ensureSession } from "./session.js";
+
 class ReportsManager {
-  constructor() {
-    this.transactions = this.loadTransactions();
+  constructor(transactions) {
+    this.transactions = transactions;
     this.currentFilters = {
       dateRange: "all",
       startDate: null,
@@ -108,32 +111,6 @@ class ReportsManager {
         this.handleChartPeriodChange(e.target.dataset.period);
       });
     });
-  }
-
-  loadTransactions() {
-    // Prefer transactions saved by the main page
-    const saved = localStorage.getItem("coinflow-transactions");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
-      } catch (e) {
-        console.warn("Failed to parse saved transactions:", e);
-      }
-    }
-
-    // Fallback to seeded data if nothing in storage
-    return [
-      { id: 1, title: "Lunch At Mama Oyinye", amount: 8500, category: "food", date: "2025-09-15", time: "14:30" },
-      { id: 2, title: "Airtime Recharge", amount: 5000, category: "bills", date: "2025-09-15", time: "14:30" },
-      { id: 3, title: "Chicken from Supermarket", amount: 14000, category: "shopping", date: "2025-09-15", time: "11:45" },
-      { id: 4, title: "Fuel for Car", amount: 25000, category: "bills", date: "2025-09-14", time: "18:15" },
-      { id: 5, title: "Drugs for Malaria", amount: 2500, category: "health", date: "2025-09-14", time: "15:20" },
-      { id: 6, title: "Bus Ride From Nsukka", amount: 2200, category: "transport", date: "2025-09-14", time: "08:00" },
-      { id: 7, title: "Electricity Bill", amount: 25000, category: "bills", date: "2025-09-13", time: "16:45" },
-      { id: 8, title: "Vee's Supermarket", amount: 35000, category: "shopping", date: "2025-09-13", time: "10:15" },
-      { id: 9, title: "Coffee From Enugu City Mall", amount: 3500, category: "food", date: "2025-09-12", time: "14:45" },
-    ];
   }
 
   handleDateRangeChange(value) {
@@ -526,7 +503,15 @@ class ReportsManager {
   }
 }
 
-// Initialize the reports manager when the page loads
+async function bootstrap() {
+  await ensureSession();
+  const { items } = await api.transactions.list({ limit: 500 });
+  new ReportsManager(items.map(toLegacyTransaction));
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-  new ReportsManager();
+  bootstrap().catch((err) => {
+    console.error(err);
+    alert(`Failed to load reports: ${err.message}`);
+  });
 });

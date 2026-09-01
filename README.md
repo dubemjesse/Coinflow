@@ -1,131 +1,165 @@
 # CoinFlow — Personal Expense & Reports Tracker
 
-Modern, responsive web application to track expenses, visualize trends, and monitor budgets. Created by Jesse Odoh.
+Modern, responsive web application to track expenses, visualize trends, and
+monitor budgets. Originally created by Jesse Odoh; now a full-stack app with a
+client, an API server, and a PostgreSQL database.
 
 ## Overview
 
-CoinFlow is organized into four primary pages:
+CoinFlow has four pages, served by the Vite client and backed by the API:
 
-- `Dashboard (index.html)`: Add expenses, view summary cards, spending overview chart, recent transactions, and budget progress.
-- `Transactions (transactions.html)`: Browse the full transaction list and categories.
-- `Reports (reports.html)`: Analyze spending with filters and a dynamic spending trend chart (daily/weekly/monthly), category breakdowns, and totals.
-- `Reminders (reminders.html)`: Manage simple financial reminders.
+- **Dashboard** (`index.html`) — add expenses, summary cards, spending-overview
+  doughnut, recent transactions, budget progress.
+- **Transactions** (`transactions.html`) — full list with search / category /
+  date filters, inline edit and delete.
+- **Reports** (`reports.html`) — totals, category breakdown, and a spending
+  trend chart with daily / weekly / monthly aggregation.
+- **Reminders** (`reminders.html`) — simple financial reminders.
 
-## Key Features
+Every page except Reminders sits behind a login overlay and reads/writes the
+API. On first sign-in the app offers to import any transactions left in the
+browser's `localStorage` from the old client.
 
-- Expense management: Add, categorize, and persist transactions.
-- Budget tracking: Visual progress bars for core categories.
-- Reports filters: Date range, categories, and on-demand report generation.
-- Spending trend chart: Canvas-based line chart with daily, weekly, and monthly aggregation.
-- Category breakdowns and totals: Quick view for how you spend.
-- Unified header styling: Consistent section headers with icons across pages.
-- Data persistence: Transactions and reminders saved in the browser.
-- CSV export: Export transactions from the Dashboard.
+## Architecture
 
-## Project Structure
+npm-workspaces monorepo:
 
 ```
-CoinFlow/
-├── index.html              # Dashboard
-├── transactions.html       # Transactions page
-├── reports.html            # Reports & analytics
-├── reminders.html          # Reminders
-├── css/
-│   └── styles.css          # Global styles
-├── js/
-│   ├── app.js              # Dashboard logic, budgets, chart, export
-│   ├── transactions.js     # Transactions page logic
-│   ├── reports.js          # Reports filters, aggregation, chart drawing
-│   └── reminders.js        # Reminders logic
-├── assets/
-│   ├── icons/
-│   │   └── favicon.svg
-│   └── images/
-│       └── logo.svg
-└── README.md               # Documentation
+coinflow/
+├── package.json            # workspaces + dev scripts
+├── docker-compose.yml      # PostgreSQL 16
+├── .env.example
+│
+├── shared/                 # @coinflow/shared
+│   └── src/index.ts        # DTOs + CATEGORIES, shared by client and server
+│
+├── client/                 # @coinflow/client — Vite multi-page app
+│   ├── vite.config.js      # one entry per page; proxies /api → server in dev
+│   ├── index.html transactions.html reports.html reminders.html
+│   ├── css/styles.css
+│   └── js/
+│       ├── api.js          # fetch wrapper + minor-unit / date helpers
+│       ├── session.js      # auth-gate overlay + one-time localStorage import
+│       ├── app.js          # Dashboard
+│       ├── transactions.js # Transactions page
+│       ├── reports.js      # Reports page
+│       └── reminders.js    # Reminders (still localStorage — Phase 4)
+│
+└── server/                 # @coinflow/server — Express + Prisma API
+    ├── prisma/
+    │   ├── schema.prisma   # users, transactions, budgets, reminders
+    │   ├── migrations/
+    │   └── seed.ts         # demo user + demo transactions + budgets
+    └── src/
+        ├── index.ts app.ts env.ts db.ts
+        ├── lib/            # auth (bcrypt + JWT), DTO serializers
+        ├── middleware/     # error handler
+        └── routes/         # health, auth, transactions
 ```
 
-## Technologies
+### Technologies
 
-- HTML5: Semantic structure
-- CSS3: Flexbox, Grid, custom properties, responsive design
-- JavaScript (ES6+): State handling, DOM updates, localStorage
-- Canvas API: Spending trend chart rendering
-- Font Awesome: Icons
+| Layer | Stack |
+|---|---|
+| Client | Vite 6, vanilla ES modules, Chart.js (dashboard doughnut), Canvas (reports trend), Font Awesome |
+| Server | Node 20+, Express 4, Prisma 6, zod, bcryptjs, jsonwebtoken |
+| Database | PostgreSQL 16 (Docker) |
+| Shared | TypeScript DTOs |
 
-Note: `reports.html` includes Chart.js, but the current trend chart uses custom Canvas rendering.
+## Running locally
 
-## Data Persistence
+**Prerequisites:** Node 20+, Docker.
 
-- Transactions: `localStorage` key `coinflow-transactions`
-- Reminders: `localStorage` key `coinflow-reminders`
+```bash
+cp .env.example .env               # adjust ports / passwords if needed
+npm install                        # installs every workspace
+npm run db:up                      # start PostgreSQL (docker compose)
+npm run db:migrate                 # apply Prisma migrations
+npm run seed --workspace server    # optional: demo data
+npm run dev                        # client + API together
+```
 
-If no saved data exists, pages seed initial demo content.
+| URL | What |
+|---|---|
+| http://localhost:5180 | Client (Vite dev server) |
+| http://localhost:4000 | API |
+| http://localhost:4000/api/health | Liveness + DB check |
 
-## Usage
+Demo login (after seeding): **`demo@coinflow.app` / `password123`**, or create
+an account from the overlay.
 
-### Dashboard
-- Add an expense: Title, Amount, Category, Date (defaults to today).
-- Spending Overview: Switch between Week/Month/Year.
-- Recent Transactions: Shows latest entries.
-- Budget Progress: Visualize spend vs. budget for Food, Transportation, Shopping, Bills.
-- Export CSV: Quick action on the Dashboard.
+### Scripts
 
-### Transactions Page
-- Browse all transactions and categories with icons.
+| Command | Effect |
+|---|---|
+| `npm run dev` | client + server in parallel |
+| `npm run dev:client` / `npm run dev:server` | one side only |
+| `npm run build` | build shared → client → server |
+| `npm run db:up` / `npm run db:down` | start / stop PostgreSQL |
+| `npm run db:migrate` | `prisma migrate dev` |
+| `npm run db:studio` | Prisma Studio |
+| `npm run seed --workspace server` | load demo data |
+| `cd server && npx prisma migrate reset` | wipe + re-migrate + re-seed the dev DB |
 
-### Reports Page
-- Filters: Date range (includes “All time”), Custom range, and Categories.
-- Generate Report: Applies filters across totals, breakdown, and chart.
-- Spending Trend chart: Period buttons (Daily/Weekly/Monthly) to re-aggregate data.
-- Section Titles: Unified style for headers (icons + H2).
+### Configuration (`.env`)
 
-### Reminders Page
-- Add and manage simple reminders (persisted in localStorage).
+| Var | Purpose |
+|---|---|
+| `POSTGRES_USER/PASSWORD/DB/PORT` | docker-compose database (host port defaults to `5434`) |
+| `DATABASE_URL` | Prisma connection string (must match the above) |
+| `PORT` | API port (default `4000`) |
+| `JWT_SECRET` | signs the `coinflow_token` cookie — **change for any real deployment** |
+| `CLIENT_ORIGIN` | CORS allow-list (default `http://localhost:5180`) |
+| `VITE_API_BASE_URL` | leave blank in dev (Vite proxies `/api`); set to the API origin for production builds |
 
-## Configuration
+## API
 
-- Budgets: Edit defaults in `js/app.js` within `loadBudgets()`.
-  - Example: `transport: 100000` (Transportation limit set to ₦100,000)
-- Categories display names and colors:
-  - `getCategoryDisplayName()` and `getCategoryColor()` in `js/app.js`.
-- Reports defaults:
-  - Date range defaults to `all` and includes “All time” option.
+Base path `/api`. Auth is a JWT in an httpOnly `coinflow_token` cookie; all
+`/transactions` routes require it and are scoped to the signed-in user.
+**Money is integer minor units (kobo) everywhere.**
 
-## Development Notes
+| Method | Path | Body / query |
+|---|---|---|
+| `POST` | `/auth/register` | `{ email, password, name, monthlyIncomeMinor? }` |
+| `POST` | `/auth/login` | `{ email, password }` |
+| `POST` | `/auth/logout` | — |
+| `GET` | `/auth/me` | — |
+| `GET` | `/transactions` | `?from&to&category&type&search&limit&offset` |
+| `POST` | `/transactions` | `{ title, amountMinor, category, occurredAt, type? }` |
+| `GET` | `/transactions/:id` | — |
+| `PATCH` | `/transactions/:id` | partial of the create body |
+| `DELETE` | `/transactions/:id` | — |
+| `POST` | `/transactions/import` | `{ transactions: [ ...create bodies ] }` (one-time migration) |
 
-- Header style: Use `.section-title` with icon + `<h2>` for consistency.
-- Chart sizing: Reports chart canvas is sized to its container for layout consistency.
-- Aggregation: Reports chart aggregates by day, week (Mon–Sun), and month.
-- Current-month budgets: Budget progress computes spend for the current month.
+Validation failures return `422` with a zod field-error map.
 
-## Running Locally
+## Data model
 
-1. Ensure you have a modern browser.
-2. From the project root, start a simple web server:
-   - Python: `python -m http.server 8000`
-   - Node (optional): `npx live-server --port=5500`
-3. Open:
-   - Dashboard: `http://localhost:8000/index.html`
-   - Reports: `http://localhost:8000/reports.html`
-   - Transactions: `http://localhost:8000/transactions.html`
-   - Reminders: `http://localhost:8000/reminders.html`
+- **users** — `email`, `passwordHash`, `name`, `monthlyIncomeMinor`, `currency`
+- **transactions** — `title`, `amountMinor`, `type` (`expense`\|`income`),
+  `category`, `occurredAt`, owner
+- **budgets** — `category`, `amountMinor`, `period` (per user; not yet exposed
+  via the API)
+- **reminders** — `title`, `description`, `category`, `dueAt`, `repeat`,
+  `completed` (schema only; page still uses `localStorage`)
 
-## Known Limitations
+## Status & roadmap
 
-- Budgets are defaults only; not persisted between sessions.
-- Seeded demo dates may fall outside the current month; budget progress reflects current-month spend only.
-- Reports chart is custom Canvas; no tooltips or zoom by default.
-- No backend; all data stored in localStorage.
+- **Phase 1** ✅ — monorepo, Dockerised Postgres, Prisma schema, API skeleton.
+- **Phase 2** ✅ — email/password auth, full `/api/transactions` CRUD +
+  `/import`; Dashboard, Transactions and Reports wired to the API.
+- **Phase 3** — `/api/budgets`, `/api/reminders`, server-side report
+  aggregation (`/api/reports`, `/api/dashboard`); convert the client to React.
+- **Phase 4** — tests, CSV export via API, deployment (client → static host,
+  server → Render/Railway, DB → Neon/Supabase).
+
+### Known limitations
+
+- Budgets are still hard-coded defaults in `client/js/app.js` (`loadBudgets()`).
+- Reminders remain browser-local until Phase 3.
+- Report aggregation still runs in the browser.
+- Reports trend chart is custom Canvas — no tooltips or zoom.
 
 ## Author
 
-Created by Jesse Odoh.
-
-## Support
-
-For questions or support, please contact the author or open an issue.
-
-—
-
-CoinFlow — Track. Analyze. Save.
+Created by Jesse Odoh. CoinFlow — Track. Analyze. Save.
