@@ -4,6 +4,11 @@ Modern, responsive web application to track expenses, visualize trends, and
 monitor budgets. Originally created by Jesse Odoh; now a full-stack app with a
 client, an API server, and a PostgreSQL database.
 
+**[▶ Live demo](https://dubemjesse.github.io/Coinflow/)** — a static preview
+seeded with sample data, no install or login required. It's a look-alike of
+the real dashboard/transactions/reports/reminders pages for anyone who just
+wants to see the app before cloning the repo.
+
 ## Overview
 
 CoinFlow has four pages, served by the Vite client and backed by the API:
